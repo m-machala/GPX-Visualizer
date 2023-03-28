@@ -1,7 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QFileDialog
-from PyQt5 import QtCore
+from PyQt5.QtGui import QPixmap, QImage
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
+import matplotlib.pyplot as plt
 height = 750
 width = 750
 
@@ -10,7 +12,7 @@ def main():
     app = QApplication([])
     window = Window()
 
-    app.exec()
+    app.exec_()
 
 
 class Window(QWidget):
@@ -55,10 +57,16 @@ class Window(QWidget):
         # filename label
         self.fileName = QLabel("No file selected", self)
         font = self.fileName.font()
-        font.setPointSize(10)
+        font.setPointSize(15)
         self.fileName.setFont(font)
         self.fileName.resize(width - 20, self.fileName.height())
         self.fileName.move(10, 190)
+
+        # map image
+        self.imageLabel = QLabel(self)
+        self.mapHeight = 500
+        self.imageLabel.resize(width - 20, self.mapHeight)
+        self.imageLabel.move(10, 240)
 
         # show window
         self.show()
@@ -71,8 +79,15 @@ class Window(QWidget):
             self.fileInputLine.setText(fileName)
 
     def analyzeData(self):
-        print("TODO")
-
+        fig, ax = plt.subplots()
+        ax.plot([1, 1, 5, 2, 5, 6], [1, 2, 1, 5, 6, 7])
+        mp = Canvas(fig)
+        mp.draw()
+        w, h = mp.get_width_height()
+        buf = mp.buffer_rgba()
+        data = buf.tobytes()
+        qimage = QImage(data, w, h, QImage.Format_RGBA8888)
+        self.imageLabel.setPixmap(QPixmap.fromImage(qimage))
 
 if __name__ == "__main__":
     main()
