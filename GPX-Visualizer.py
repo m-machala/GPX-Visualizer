@@ -1,9 +1,14 @@
-import sys
+import os
+
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
 import matplotlib.pyplot as plt
+
+import gpxpy
+from gpxpy.geo import haversine_distance
+
 height = 750
 width = 750
 
@@ -62,12 +67,6 @@ class Window(QWidget):
         self.fileName.resize(width - 20, self.fileName.height())
         self.fileName.move(10, 190)
 
-        # map image
-        self.imageLabel = QLabel(self)
-        self.mapHeight = 500
-        self.imageLabel.resize(width - 20, self.mapHeight)
-        self.imageLabel.move(10, 240)
-
         # show window
         self.show()
 
@@ -79,15 +78,59 @@ class Window(QWidget):
             self.fileInputLine.setText(fileName)
 
     def analyzeData(self):
-        fig, ax = plt.subplots()
-        ax.plot([1, 1, 5, 2, 5, 6], [1, 2, 1, 5, 6, 7])
-        mp = Canvas(fig)
-        mp.draw()
-        w, h = mp.get_width_height()
-        buf = mp.buffer_rgba()
-        data = buf.tobytes()
-        qimage = QImage(data, w, h, QImage.Format_RGBA8888)
-        self.imageLabel.setPixmap(QPixmap.fromImage(qimage))
+        try:
+            file = open(self.fileInputLine.text(), 'r')
+            gpx = gpxpy.parse(file)
+            track = gpx.tracks[0]
+            self.fileName.setText(track.name)
+
+            lats = []
+            lons = []
+            pointCount = len(track.segments[0].points)
+            tripStart = track.segments[0].points[0].time
+            tripEnd = track.segments[0].points[-1].time
+            # distance in meters
+            distance = 0
+            distances = [0]
+            # velocity in km/h
+            velocities = []
+            # add up distances if there are multiple points with same time
+            distanceHold = 0
+
+            for i in range(len(track.segments[0].points)):
+                point = track.segments[0].points[i]
+                prevPoint = track.segments[0].points[i - 1]
+
+                lats.append(point.latitude)
+                lons.append(point.longitude)
+
+                if i > 0:
+                    dDifference = haversine_distance(point.latitude, point.longitude, prevPoint.latitude, prevPoint.longitude)
+                    distance += dDifference
+                    distances.append(distance)
+
+                    tDifference = point.time_difference(prevPoint)
+                    if tDifference == 0:
+                        distanceHold += dDifference
+                        continue
+
+                    velocity = (dDifference + distanceHold) / tDifference
+                    distanceHold = 0
+                    # multiplied by a constant to convert from m/s to km/h
+                    velocities.append(velocity * 3.6)
+            fig, ax = plt.subplots()
+            ax.plot(lons, lats)
+            plt.axis("equal")
+            plt.show()
+
+
+        except FileNotFoundError:
+            self.fileName.setText("File not found!")
+
+        except:
+            self.fileName.setText("Invalid file!")
+
+
 
 if __name__ == "__main__":
     main()
