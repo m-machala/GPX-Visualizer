@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 import gpxpy
 from gpxpy.geo import haversine_distance
 
-height = 750
+from statistics import mean
+
+height = 800
 width = 750
 
 
@@ -32,6 +34,7 @@ class Window(QWidget):
         font = self.programNameLabel.font()
         font.setPointSize(20)
         self.programNameLabel.setFont(font)
+        self.programNameLabel.resize(width - 20, self.programNameLabel.height())
         self.programNameLabel.move(10, 10)
 
         # label above file select
@@ -67,6 +70,88 @@ class Window(QWidget):
         self.fileName.resize(width - 20, self.fileName.height())
         self.fileName.move(10, 190)
 
+        # trackpoint counter
+        self.trackPointDefault = "Track points: "
+        self.trackPointLabel = QLabel(self.trackPointDefault, self)
+        font = self.trackPointLabel.font()
+        font.setPointSize(10)
+        self.trackPointLabel.setFont(font)
+        self.trackPointLabel.resize(width - 20, self.trackPointLabel.height())
+        self.trackPointLabel.move(10, 220)
+
+        # start timestamp
+        self.startTimeDefault = "Trip start: "
+        self.startTimeLabel = QLabel(self.startTimeDefault, self)
+        font = self.startTimeLabel.font()
+        font.setPointSize(10)
+        self.startTimeLabel.setFont(font)
+        self.startTimeLabel.resize(width - 20, self.startTimeLabel.height())
+        self.startTimeLabel.move(10, 245)
+
+        # end timestamp
+        self.endTimeDefault = "Trip end: "
+        self.endTimeLabel = QLabel(self.endTimeDefault, self)
+        font = self.endTimeLabel.font()
+        font.setPointSize(10)
+        self.endTimeLabel.setFont(font)
+        self.endTimeLabel.resize(width - 20, self.endTimeLabel.height())
+        self.endTimeLabel.move(10, 270)
+
+        # duration
+        self.tripDurationDefault = "Trip duration: "
+        self.tripDurationLabel = QLabel(self.tripDurationDefault, self)
+        font = self.tripDurationLabel.font()
+        font.setPointSize(10)
+        self.tripDurationLabel.setFont(font)
+        self.tripDurationLabel.resize(width - 20, self.tripDurationLabel.height())
+        self.tripDurationLabel.move(10, 295)
+
+        # distance in km
+        self.distanceTraveledDefault = "Distance traveled: "
+        self.distanceTraveledLabel = QLabel(self.distanceTraveledDefault, self)
+        font = self.distanceTraveledLabel.font()
+        font.setPointSize(10)
+        self.distanceTraveledLabel.setFont(font)
+        self.distanceTraveledLabel.resize(width - 20, self.distanceTraveledLabel.height())
+        self.distanceTraveledLabel.move(10, 320)
+
+        # distance graph name
+        self.distanceGraphLabel = QLabel("Distance graph (km)", self)
+        font = self.distanceGraphLabel.font()
+        font.setPointSize(10)
+        self.distanceGraphLabel.setFont(font)
+        self.distanceGraphLabel.resize(width - 20, self.distanceGraphLabel.height())
+        self.distanceGraphLabel.move(10, 345)
+
+        # distance graph
+        self.distanceGraphImage = QLabel(self)
+        self.distanceGraphHeight = 150
+        self.distanceGraphImage.resize(width - 20, self.distanceGraphHeight)
+        self.distanceGraphImage.move(10, 370)
+
+        # velocity in km/h
+        self.averageVelocityDefault = "Average velocity: "
+        self.averageVelocityLabel = QLabel(self.averageVelocityDefault, self)
+        font = self.averageVelocityLabel.font()
+        font.setPointSize(10)
+        self.averageVelocityLabel.setFont(font)
+        self.averageVelocityLabel.resize(width - 20, self.averageVelocityLabel.height())
+        self.averageVelocityLabel.move(10, 545)
+
+        # velocity graph name
+        self.velocityGraphLabel = QLabel("Velocity graph (km/h)", self)
+        font = self.velocityGraphLabel.font()
+        font.setPointSize(10)
+        self.velocityGraphLabel.setFont(font)
+        self.velocityGraphLabel.resize(width - 20, self.velocityGraphLabel.height())
+        self.velocityGraphLabel.move(10, 570)
+
+        # velocity graph image
+        self.velocityGraphImage = QLabel(self)
+        self.distanceGraphHeight = 150
+        self.velocityGraphImage.resize(width - 20, self.distanceGraphHeight)
+        self.velocityGraphImage.move(10, 370)
+
         # show window
         self.show()
 
@@ -86,9 +171,7 @@ class Window(QWidget):
 
             lats = []
             lons = []
-            pointCount = len(track.segments[0].points)
-            tripStart = track.segments[0].points[0].time
-            tripEnd = track.segments[0].points[-1].time
+
             # distance in meters
             distance = 0
             distances = [0]
@@ -122,6 +205,20 @@ class Window(QWidget):
             ax.plot(lons, lats)
             plt.axis("equal")
             plt.show()
+
+            pointCount = len(track.segments[0].points)
+            tripStart = track.segments[0].points[0].time
+            tripEnd = track.segments[0].points[-1].time
+            tripDuration = track.segments[0].points[0].time_difference(track.segments[0].points[-1])
+            tripDurationHr = int(tripDuration / 3600)
+            tripDurationMin = int((tripDuration % 3600) / 60)
+
+            self.trackPointLabel.setText(self.trackPointDefault + str(pointCount))
+            self.startTimeLabel.setText(self.startTimeDefault + str(tripStart) + "(UTC)")
+            self.endTimeLabel.setText(self.endTimeDefault + str(tripEnd) + "(UTC)")
+            self.tripDurationLabel.setText(self.tripDurationDefault + str(tripDurationHr) + ":" + str(tripDurationMin))
+            self.distanceTraveledLabel.setText(self.distanceTraveledDefault + str(float(distance) / 1000) + " km")
+            self.averageVelocityLabel.setText(self.averageVelocityDefault + str(mean(velocities)) + " km/h")
 
 
         except FileNotFoundError:
