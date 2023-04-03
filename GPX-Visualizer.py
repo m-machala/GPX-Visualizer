@@ -193,7 +193,7 @@ class Window(QWidget):
             ax.plot(distanceTimes, distances)
             ax.set_title("Distance")
             ax.set_xlabel("s")
-            ax.set_ylabel("km")
+            ax.set_ylabel("m")
             plt.show()
 
             fig, ax = plt.subplots()
