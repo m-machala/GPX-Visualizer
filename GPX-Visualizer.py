@@ -212,11 +212,11 @@ class Window(QWidget):
             tripDurationMin = int((tripDuration % 3600) / 60)
 
             self.trackPointLabel.setText(self.trackPointDefault + str(pointCount))
-            self.startTimeLabel.setText(self.startTimeDefault + str(tripStart) + "(UTC)")
-            self.endTimeLabel.setText(self.endTimeDefault + str(tripEnd) + "(UTC)")
+            self.startTimeLabel.setText(self.startTimeDefault + str(tripStart) + " (UTC)")
+            self.endTimeLabel.setText(self.endTimeDefault + str(tripEnd) + " (UTC)")
             self.tripDurationLabel.setText(self.tripDurationDefault + str(tripDurationHr) + ":" + str(tripDurationMin))
-            self.distanceTraveledLabel.setText(self.distanceTraveledDefault + str(float(distance) / 1000) + " km")
-            self.averageVelocityLabel.setText(self.averageVelocityDefault + str(mean(velocities)) + " km/h")
+            self.distanceTraveledLabel.setText(self.distanceTraveledDefault + str(round(float(distance) / 1000, 2)) + " km")
+            self.averageVelocityLabel.setText(self.averageVelocityDefault + str(round(mean(velocities), 2)) + " km/h")
 
 
         except FileNotFoundError:
